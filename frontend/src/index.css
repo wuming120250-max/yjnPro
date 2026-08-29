@@ -141,6 +141,28 @@ body,
   letter-spacing: 0;
 }
 
+.diag-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #f0ebe3;
+}
+
+.diag-item:last-child {
+  border-bottom: 0;
+}
+
+.diag-action {
+  margin-top: 16px;
+  padding-top: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.demo-note {
+  color: #9a8b78;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
 @media (max-width: 900px) {
   .login-page {
     grid-template-columns: 1fr;

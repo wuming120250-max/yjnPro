@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,9 +14,13 @@ if str(ROOT) not in sys.path:
 
 from app.models.banquet_lead import BanquetLead  # noqa: E402
 from app.models.customer import Customer  # noqa: E402
+from app.models.daily_revenue import DailyRevenue  # noqa: E402
+from app.models.menu_item import MenuItem  # noqa: E402
 from app.models.order import Order  # noqa: E402
 from app.models.review import Review  # noqa: E402
+from app.models.table_order import TableOrder  # noqa: E402
 from scripts.generate_demo_data import demo_dir, generate_all  # noqa: E402
+from scripts.generate_v2_demo_data import generate_v2  # noqa: E402
 
 
 def _parse_date(value: str):
@@ -103,6 +108,68 @@ def seed_if_empty(db: Session) -> None:
     db.commit()
 
 
+def _parse_time(value: str):
+    if not value:
+        return None
+    parts = value.split(":")
+    return datetime.strptime(":".join(parts[:3]) if len(parts) >= 2 else value, "%H:%M:%S" if len(parts) >= 3 else "%H:%M").time()
+
+
+def seed_v2_if_empty(db: Session) -> None:
+    existing = db.scalar(select(func.count(MenuItem.id))) or 0
+    if existing:
+        return
+    data_dir = demo_dir()
+    required = ["menu_items.csv", "daily_revenue.csv", "table_orders.csv"]
+    if not all((data_dir / name).exists() for name in required):
+        generate_v2(data_dir)
+
+    for row in _read(data_dir / "menu_items.csv"):
+        db.add(
+            MenuItem(
+                name=row["name"],
+                category=row["category"],
+                price=float(row["price"]),
+                cost_price=float(row["cost_price"]),
+                gross_profit=float(row["gross_profit"]),
+                gross_margin=float(row["gross_margin"]),
+                sales_count=int(float(row["sales_count"])),
+                sales_amount=float(row["sales_amount"]),
+                sales_trend=float(row["sales_trend"]),
+                status=row.get("status") or "active",
+            )
+        )
+    for row in _read(data_dir / "daily_revenue.csv"):
+        db.add(
+            DailyRevenue(
+                date=_parse_date(row["date"]),
+                revenue=float(row["revenue"]),
+                order_count=int(row["order_count"]),
+                average_order_amount=float(row["average_order_amount"]),
+                lunch_revenue=float(row["lunch_revenue"]),
+                dinner_revenue=float(row["dinner_revenue"]),
+                banquet_revenue=float(row["banquet_revenue"]),
+                lunch_orders=int(row.get("lunch_orders") or 0),
+                dinner_orders=int(row.get("dinner_orders") or 0),
+                family_orders=int(row.get("family_orders") or 0),
+            )
+        )
+    for row in _read(data_dir / "table_orders.csv"):
+        db.add(
+            TableOrder(
+                table_name=row["table_name"],
+                seats=int(row["seats"]),
+                order_date=_parse_date(row["order_date"]),
+                start_time=_parse_time(row["start_time"]),
+                end_time=_parse_time(row["end_time"]),
+                duration_minutes=int(row["duration_minutes"]),
+                amount=float(row["amount"]),
+                order_type=row.get("order_type") or "普通用餐",
+            )
+        )
+    db.commit()
+
+
 def main() -> None:
     from app.db.base import Base
     from app.db.session import SessionLocal, engine
@@ -113,9 +180,11 @@ def main() -> None:
     try:
         if count_customers(db) == 0:
             seed_if_empty(db)
-            print("seed completed")
+            print("v1 seed completed")
         else:
-            print("database already has customers, skip seed")
+            print("database already has customers, skip v1 seed")
+        seed_v2_if_empty(db)
+        print("v2 seed completed")
     finally:
         db.close()
 

@@ -124,3 +124,121 @@ BANQUET_ANALYZE_PROMPT = """你是一名专业餐饮门店宴请客户顾问，�
 当前状态：{status}
 备注：{notes}
 """
+
+DAILY_REPORT_PROMPT = """你是一名专业的餐饮经营分析顾问，门店是青岛城阳宴江南（汇海路店）。
+
+你的任务不是简单描述数据，而是帮助餐饮老板发现经营问题。
+
+请分析以下门店经营数据，并严格返回 JSON（不要 markdown 代码块）：
+
+{{
+  "summary": "今日经营总体评价，2-4句，要有数据依据",
+  "warnings": ["最值得关注的问题"],
+  "positives": ["表现优秀的地方"],
+  "opportunities": ["潜在经营机会"],
+  "recommendation": "今天最应该做的一件事情"
+}}
+
+要求：
+- 使用老板容易理解的中文
+- 不要使用复杂的数据分析术语
+- 不要泛泛而谈
+- 每个建议必须有数据依据
+- 建议必须能够执行
+- 不要虚构不存在的数据
+
+经营数据：
+{ops_data}
+"""
+
+MENU_DIAGNOSE_PROMPT = """你是一名餐饮菜单经营顾问，门店是青岛城阳宴江南（汇海路店）。
+
+请根据以下菜品经营数据分析菜单，严格返回 JSON（不要 markdown 代码块）：
+
+{{
+  "health_score": 0到100的整数,
+  "judgment": "菜单整体判断，2-3句",
+  "stars": ["明星菜及原因"],
+  "potentials": ["潜力菜及原因"],
+  "traffic": ["引流菜及原因"],
+  "eliminate": ["淘汰候选及原因"],
+  "structure_issue": "菜单结构问题",
+  "suggestions": ["经营建议"]
+}}
+
+必须根据销量和毛利率进行分析，不要只根据菜品名称判断。输出必须适合餐饮老板阅读。
+
+菜品数据：
+{menu_data}
+"""
+
+REVENUE_ANALYZE_PROMPT = """你是一名餐饮经营分析专家，门店是青岛城阳宴江南（汇海路店）。
+
+请分析门店营业额变化，严格返回 JSON（不要 markdown 代码块）：
+
+{{
+  "is_anomaly": true,
+  "verdict": "是否异常的一句话判断",
+  "main_reason": "主要原因",
+  "reasons": ["原因列表"],
+  "traffic_or_ticket": "客流问题还是客单价问题",
+  "key_period": "影响最大的时间段",
+  "key_customer": "影响最大的客群",
+  "tomorrow_action": "明天应该采取的行动"
+}}
+
+不要编造数据。所有结论必须来自提供的数据。
+
+营业数据：
+{revenue_data}
+"""
+
+TABLE_ANALYZE_PROMPT = """你是一名餐饮门店运营顾问，门店是青岛城阳宴江南（汇海路店）。
+
+请分析翻台效率数据，严格返回 JSON（不要 markdown 代码块）：
+
+{{
+  "verdict": "总体判断",
+  "peak_issue": "高峰期问题描述",
+  "normal_duration": 72,
+  "suggestions": ["可执行建议"]
+}}
+
+不要编造数据。请明确这是基于门店桌台经营数据的效率诊断。
+
+数据：
+{table_data}
+"""
+
+STAFF_RECOMMEND_PROMPT = """你是一名专业餐饮服务员培训顾问，门店是青岛城阳宴江南（汇海路店）。
+
+请根据客户需求和菜品经营数据，生成适合服务员向客户推荐的菜品。严格返回 JSON（不要 markdown 代码块）：
+
+{{
+  "dishes": ["菜品名称"],
+  "estimated_min": 数字,
+  "estimated_max": 数字,
+  "reason": "推荐理由",
+  "script": "一句自然的服务员推荐话术"
+}}
+
+客户：
+人数：{people}
+预算：{budget}
+场景：{scene}
+口味：{taste}
+是否第一次来：{first_visit}
+推荐模式：{mode}
+
+菜品：
+{menu_data}
+
+要求：
+1. 推荐3～6道菜
+2. 不超过客户预算
+3. 尽量兼顾高毛利菜
+4. 如果有招牌菜，可以优先推荐
+5. 给出推荐理由
+6. 生成一句自然的服务员推荐话术
+"""
+

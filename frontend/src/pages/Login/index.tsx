@@ -14,7 +14,7 @@ export default function Login() {
         <div style={{ letterSpacing: "0.24em", fontSize: 13, opacity: 0.7 }}>QINGDAO CHENGYANG</div>
         <h1>宴江南</h1>
         <p>
-          AI 门店经营助手。不是再做一套收银或点餐系统，而是帮老板把客户、消费和评价数据用起来：发现该召回谁、该怎么说、哪些宴请值得跟进。
+          AI 老板经营诊断系统。每天帮餐饮老板发现经营问题，并告诉老板下一步应该做什么。
         </p>
       </div>
       <div className="login-form-wrap">

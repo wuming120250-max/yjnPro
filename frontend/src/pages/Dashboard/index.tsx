@@ -1,21 +1,17 @@
-import {
-  Alert,
-  Button,
-  Card,
-  Col,
-  Row,
-  Space,
-  Spin,
-  Statistic,
-  Tag,
-} from "antd";
+import { Alert, Button, Card, Col, Row, Spin, Statistic, Tag } from "antd";
 import ReactECharts from "echarts-for-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchDashboard } from "../../api/dashboard";
 import { getErrorMessage } from "../../api/client";
 import PageHeader from "../../components/PageHeader";
-import type { DashboardOverview } from "../../types";
+import type { DashboardOverview, DiagnosisItem } from "../../types";
+
+const levelMeta: Record<string, { color: string; label: string }> = {
+  critical: { color: "red", label: "重点关注" },
+  positive: { color: "green", label: "正向增长" },
+  opportunity: { color: "gold", label: "经营机会" },
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -30,26 +26,18 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return <Spin />;
-  }
-  if (error || !data) {
-    return <Alert type="error" showIcon message={error || "暂无数据"} />;
-  }
+  if (loading) return <Spin />;
+  if (error || !data) return <Alert type="error" showIcon message={error || "暂无数据"} />;
 
   const trendOption = {
     tooltip: { trigger: "axis" },
     grid: { left: 48, right: 16, top: 24, bottom: 32 },
-    xAxis: {
-      type: "category",
-      data: data.trend.map((item) => item.date.slice(5)),
-    },
+    xAxis: { type: "category", data: data.trend.map((item) => item.date.slice(5)) },
     yAxis: { type: "value" },
     series: [
       {
         name: "营业额",
         type: "line",
-        smooth: true,
         data: data.trend.map((item) => item.revenue),
         itemStyle: { color: "#b5453a" },
         areaStyle: { color: "rgba(181, 69, 58, 0.08)" },
@@ -57,90 +45,110 @@ export default function Dashboard() {
     ],
   };
 
-  const pieOption = {
-    tooltip: { trigger: "item" },
-    legend: { bottom: 0 },
-    series: [
-      {
-        type: "pie",
-        radius: ["42%", "68%"],
-        data: Object.entries(data.level_distribution).map(([name, value]) => ({ name, value })),
-      },
-    ],
-  };
+  const changeText = (value: number, suffix = "%") => (
+    <span style={{ color: value >= 0 ? "#2f6f5e" : "#b5453a", fontSize: 13 }}>
+      较昨日 {value >= 0 ? "+" : ""}
+      {value}
+      {suffix}
+    </span>
+  );
 
   return (
     <div>
-      <PageHeader title="AI经营驾驶舱">今天应该做什么：看经营数据、看 AI 发现、直接执行动作。</PageHeader>
+      <PageHeader title="宴江南 AI老板经营驾驶舱">
+        不要自己翻图表。先看 AI 今天发现了什么、最该做什么。
+      </PageHeader>
       <Row gutter={[16, 16]}>
-        <Col xs={12} md={8} xl={4}>
+        <Col xs={12} md={6}>
           <Card className="stat-card">
             <Statistic title="今日营业额" prefix="¥" value={data.today_revenue} precision={0} />
+            {changeText(data.revenue_change)}
           </Card>
         </Col>
-        <Col xs={12} md={8} xl={4}>
+        <Col xs={12} md={6}>
           <Card className="stat-card">
             <Statistic title="今日订单数" value={data.today_orders} />
+            {changeText(data.order_change)}
           </Card>
         </Col>
-        <Col xs={12} md={8} xl={4}>
+        <Col xs={12} md={6}>
           <Card className="stat-card">
-            <Statistic title="今日客单价" prefix="¥" value={data.average_order_amount} precision={0} />
+            <Statistic title="客单价" prefix="¥" value={data.average_order_amount} precision={0} />
+            {changeText(data.aov_change)}
           </Card>
         </Col>
-        <Col xs={12} md={8} xl={4}>
+        <Col xs={12} md={6}>
           <Card className="stat-card">
-            <Statistic title="客户总数" value={data.customer_count} />
-          </Card>
-        </Col>
-        <Col xs={12} md={8} xl={4}>
-          <Card className="stat-card">
-            <Statistic title="老客户占比" suffix="%" value={data.old_customer_rate} />
-          </Card>
-        </Col>
-        <Col xs={12} md={8} xl={4}>
-          <Card className="stat-card">
-            <Statistic title="待跟进客户" suffix="人" value={data.pending_followups} />
+            <Statistic title="经营评分" value={data.score} suffix={`/100 ${data.stars_label || ""}`} />
+            <span style={{ color: "#6b7280", fontSize: 13 }}>
+              预计营业额 ¥{Math.round(data.forecast_revenue || 0)} · 较上周 {data.week_change >= 0 ? "+" : ""}
+              {data.week_change}%
+            </span>
           </Card>
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        <Col xs={24} lg={14}>
-          <div className="ai-card">
-            <h3>AI今日发现</h3>
-            {data.insights.map((item) => (
-              <div className="insight-item" key={item.title}>
-                <Space>
-                  <Tag color={item.level === "success" ? "green" : "orange"}>
-                    {item.level === "success" ? "机会" : "提醒"}
-                  </Tag>
-                  <strong>{item.title}</strong>
-                </Space>
-                <div style={{ marginTop: 6, color: "#6b7280" }}>{item.suggestion}</div>
+      <div className="ai-card" style={{ marginTop: 16 }}>
+        <h3>AI今日经营诊断</h3>
+        <div style={{ color: "#6b7280", marginBottom: 8 }}>
+          今天系统发现 {(data.diagnosis || []).length} 个值得关注的问题：
+        </div>
+        {(data.diagnosis || []).map((item: DiagnosisItem) => (
+          <div className="diag-item" key={item.title}>
+            <Tag color={levelMeta[item.level]?.color || "default"}>{levelMeta[item.level]?.label || item.level}</Tag>
+            <strong style={{ marginLeft: 8 }}>{item.title}</strong>
+            <div style={{ marginTop: 6 }}>{item.detail}</div>
+            <div style={{ color: "#6b7280", marginTop: 4 }}>可能原因：{item.reason}</div>
+            <div style={{ marginTop: 4 }}>
+              建议：{item.suggestion}{" "}
+              <Button type="link" onClick={() => navigate(item.link)}>
+                查看详情
+              </Button>
+            </div>
+          </div>
+        ))}
+        <div className="diag-action">👉 今日最重要：{data.recommendation || "重点推广家庭聚餐套餐"}</div>
+      </div>
+
+      <Row gutter={16} style={{ marginTop: 16 }}>
+        <Col xs={24} lg={10}>
+          <Card title="菜品经营" extra={<Button type="link" onClick={() => navigate("/menu-analysis")}>查看</Button>}>
+            {Object.entries(data.menu_counts || {}).map(([name, value]) => (
+              <div key={name} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0" }}>
+                <span>{name}</span>
+                <strong>{value}</strong>
               </div>
             ))}
-          </div>
-          <Card title="今日行动" style={{ marginTop: 16 }}>
-            <Space wrap size="middle">
-              <Button type="primary" onClick={() => navigate("/customer-recall")}>
-                召回沉睡客户
-              </Button>
-              <Button onClick={() => navigate("/marketing")}>生成营销方案</Button>
-              <Button onClick={() => navigate("/reviews")}>分析客户评价</Button>
-              <Button onClick={() => navigate("/banquet-leads")}>查看宴请客户</Button>
-            </Space>
           </Card>
         </Col>
-        <Col xs={24} lg={10}>
-          <Card title="近7日营业额">
-            <ReactECharts option={trendOption} style={{ height: 240 }} />
+        <Col xs={24} lg={14}>
+          <Card title="营业趋势">
+            <ReactECharts option={trendOption} style={{ height: 220 }} />
           </Card>
         </Col>
       </Row>
-      <Card title="客户分层" style={{ marginTop: 16 }}>
-        <ReactECharts option={pieOption} style={{ height: 280 }} />
-      </Card>
+
+      <Row gutter={16} style={{ marginTop: 16 }}>
+        <Col span={8}>
+          <Card
+            hoverable
+            onClick={() => navigate("/customer-recall")}
+            title="客户经营"
+          >
+            待召回 {data.high_value_sleeping_count} 人
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card hoverable onClick={() => navigate("/banquet-leads")} title="宴请客户">
+            待跟进 {data.banquet_pending_count} 人
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card hoverable onClick={() => navigate("/staff-assistant")} title="AI员工助手">
+            今日推荐高毛利菜
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 }

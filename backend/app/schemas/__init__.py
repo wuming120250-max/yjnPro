@@ -57,6 +57,16 @@ class DashboardOverview(BaseModel):
     pending_followups: int
     high_value_sleeping_count: int
     banquet_pending_count: int
+    forecast_revenue: float = 0
+    revenue_change: float = 0
+    order_change: float = 0
+    aov_change: float = 0
+    week_change: float = 0
+    score: int = 0
+    stars_label: str = ""
+    recommendation: str = ""
+    diagnosis: list[dict] = Field(default_factory=list)
+    menu_counts: dict[str, int] = Field(default_factory=dict)
 
 
 class DashboardInsight(BaseModel):

@@ -32,9 +32,28 @@ export interface DashboardOverview {
   pending_followups: number;
   high_value_sleeping_count: number;
   banquet_pending_count: number;
+  forecast_revenue: number;
+  revenue_change: number;
+  order_change: number;
+  aov_change: number;
+  week_change: number;
+  score: number;
+  stars_label: string;
+  recommendation: string;
+  diagnosis: DiagnosisItem[];
+  menu_counts: Record<string, number>;
   insights: DashboardInsight[];
   trend: DashboardTrendPoint[];
   level_distribution: Record<string, number>;
+}
+
+export interface DiagnosisItem {
+  level: string;
+  title: string;
+  detail: string;
+  reason: string;
+  suggestion: string;
+  link: string;
 }
 
 export interface CustomerItem {
@@ -170,5 +189,44 @@ export interface BanquetAnalyzeResult {
   followup_suggestion: string;
   next_step: string;
   script: string;
+  demo_fallback: boolean;
+}
+
+export interface MenuDish {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  cost_price: number;
+  gross_profit: number;
+  gross_margin: number;
+  sales_count: number;
+  sales_amount: number;
+  sales_trend: number;
+  quadrant: string;
+  advice: string;
+}
+
+export interface MenuAnalysis {
+  avg_sales: number;
+  avg_margin: number;
+  items: MenuDish[];
+  counts: Record<string, number>;
+}
+
+export interface DailyReport {
+  report_date: string;
+  score: number;
+  stars_label: string;
+  today_revenue: number;
+  today_orders: number;
+  average_order_amount: number;
+  revenue_change: number;
+  summary: string;
+  warnings: string[];
+  positives: string[];
+  opportunities: string[];
+  recommendation: string;
+  diagnosis: DiagnosisItem[];
   demo_fallback: boolean;
 }

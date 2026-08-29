@@ -5,72 +5,41 @@ from sqlalchemy.orm import Session
 
 from app.models.banquet_lead import BanquetLead
 from app.models.customer import Customer
-from app.models.order import Order
-from app.services.customer_service import (
-    LEVEL_HIGH_SLEEP,
-    compute_customer_level,
-    current_biz_date,
-)
+from app.models.daily_revenue import DailyRevenue
+from app.services.customer_service import compute_customer_level, current_biz_date
+from app.services.daily_report_service import build_scorecard, diagnosis_items
 from app.services.recall_service import list_recall_customers
 
 
 def get_overview(db: Session) -> dict:
     today = current_biz_date()
-    today_revenue = db.scalar(
-        select(func.coalesce(func.sum(Order.amount), 0)).where(Order.order_date == today)
-    )
-    today_orders = db.scalar(select(func.count(Order.id)).where(Order.order_date == today)) or 0
-    today_revenue_value = float(today_revenue or 0)
-    average_order_amount = round(today_revenue_value / today_orders, 0) if today_orders else 0
+    card = build_scorecard(db)
+    diagnosis = diagnosis_items(card)
+
     customer_count = db.scalar(select(func.count(Customer.id))) or 0
     old_customers = (
         db.scalar(select(func.count(Customer.id)).where(Customer.total_orders >= 2)) or 0
     )
     old_customer_rate = round(old_customers / customer_count * 100, 0) if customer_count else 0
-
     recall_customers = list_recall_customers(db)
     banquet_pending = (
         db.scalar(
-            select(func.count(BanquetLead.id)).where(
-                BanquetLead.status.in_(["待跟进", "已联系"])
-            )
+            select(func.count(BanquetLead.id)).where(BanquetLead.status.in_(["待跟进", "已联系"]))
         )
         or 0
     )
-    pending_followups = len(recall_customers) + banquet_pending
 
-    insights = [
-        {
-            "level": "warning",
-            "title": f"{len(recall_customers)}名高价值客户超过60天未消费",
-            "suggestion": "建议进行老客户召回。",
-        },
-        {
-            "level": "warning",
-            "title": "最近评价中「家庭聚餐」出现频率较高",
-            "suggestion": "建议设计家庭聚餐套餐。",
-        },
-        {
-            "level": "success",
-            "title": "近期宴请客户线索增加",
-            "suggestion": "建议重点跟进25人以上聚餐客户。",
-        },
+    trend_rows = list(
+        db.scalars(
+            select(DailyRevenue)
+            .where(DailyRevenue.date >= today - timedelta(days=6))
+            .order_by(DailyRevenue.date.asc())
+        ).all()
+    )
+    trend = [
+        {"date": row.date.isoformat(), "revenue": float(row.revenue), "orders": row.order_count}
+        for row in trend_rows
     ]
-
-    trend = []
-    for offset in range(6, -1, -1):
-        day = today - timedelta(days=offset)
-        revenue = db.scalar(
-            select(func.coalesce(func.sum(Order.amount), 0)).where(Order.order_date == day)
-        )
-        orders = db.scalar(select(func.count(Order.id)).where(Order.order_date == day)) or 0
-        trend.append(
-            {
-                "date": day.isoformat(),
-                "revenue": float(revenue or 0),
-                "orders": orders,
-            }
-        )
 
     customers = list(db.scalars(select(Customer)).all())
     distribution: dict[str, int] = {}
@@ -84,15 +53,32 @@ def get_overview(db: Session) -> dict:
         distribution[level] = distribution.get(level, 0) + 1
 
     return {
-        "today_revenue": today_revenue_value,
-        "today_orders": today_orders,
-        "average_order_amount": average_order_amount,
+        "today_revenue": card["today_revenue"],
+        "today_orders": card["today_orders"],
+        "average_order_amount": card["average_order_amount"],
+        "forecast_revenue": card["forecast_revenue"],
+        "revenue_change": card["revenue_change"],
+        "order_change": card["order_change"],
+        "aov_change": card["aov_change"],
+        "week_change": card["week_change"],
+        "score": card["score"],
+        "stars_label": card["stars_label"],
+        "recommendation": "重点推广家庭聚餐套餐",
+        "diagnosis": diagnosis,
+        "menu_counts": card["menu_counts"],
         "customer_count": customer_count,
         "old_customer_rate": old_customer_rate,
-        "pending_followups": pending_followups,
+        "pending_followups": len(recall_customers) + banquet_pending,
         "high_value_sleeping_count": len(recall_customers),
         "banquet_pending_count": banquet_pending,
-        "insights": insights,
+        "insights": [
+            {
+                "level": item["level"],
+                "title": item["title"],
+                "suggestion": item["suggestion"],
+            }
+            for item in diagnosis
+        ],
         "trend": trend,
         "level_distribution": distribution,
     }

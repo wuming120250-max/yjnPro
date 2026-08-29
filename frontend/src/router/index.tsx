@@ -5,6 +5,12 @@ import MainLayout from "../layouts/MainLayout";
 import Login from "../pages/Login";
 
 const Dashboard = lazy(() => import("../pages/Dashboard"));
+const AIDailyReport = lazy(() => import("../pages/AIDailyReport"));
+const MenuAnalysis = lazy(() => import("../pages/MenuAnalysis"));
+const MenuDiagnosis = lazy(() => import("../pages/MenuDiagnosis"));
+const RevenueAnalysis = lazy(() => import("../pages/RevenueAnalysis"));
+const TableEfficiency = lazy(() => import("../pages/TableEfficiency"));
+const StaffAssistant = lazy(() => import("../pages/StaffAssistant"));
 const Customers = lazy(() => import("../pages/Customers"));
 const CustomerRecall = lazy(() => import("../pages/CustomerRecall"));
 const Marketing = lazy(() => import("../pages/Marketing"));
@@ -23,6 +29,10 @@ function PageFallback() {
   return <div style={{ padding: 32 }}>页面加载中…</div>;
 }
 
+function wrap(element: ReactNode) {
+  return <Suspense fallback={<PageFallback />}>{element}</Suspense>;
+}
+
 export const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   {
@@ -34,62 +44,19 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
-      {
-        path: "dashboard",
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <Dashboard />
-          </Suspense>
-        ),
-      },
-      {
-        path: "customers",
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <Customers />
-          </Suspense>
-        ),
-      },
-      {
-        path: "customer-recall",
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <CustomerRecall />
-          </Suspense>
-        ),
-      },
-      {
-        path: "marketing",
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <Marketing />
-          </Suspense>
-        ),
-      },
-      {
-        path: "reviews",
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <Reviews />
-          </Suspense>
-        ),
-      },
-      {
-        path: "banquet-leads",
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <BanquetLeads />
-          </Suspense>
-        ),
-      },
-      {
-        path: "settings",
-        element: (
-          <Suspense fallback={<PageFallback />}>
-            <Settings />
-          </Suspense>
-        ),
-      },
+      { path: "dashboard", element: wrap(<Dashboard />) },
+      { path: "ai-daily-report", element: wrap(<AIDailyReport />) },
+      { path: "menu-analysis", element: wrap(<MenuAnalysis />) },
+      { path: "menu-diagnosis", element: wrap(<MenuDiagnosis />) },
+      { path: "revenue-analysis", element: wrap(<RevenueAnalysis />) },
+      { path: "table-efficiency", element: wrap(<TableEfficiency />) },
+      { path: "staff-assistant", element: wrap(<StaffAssistant />) },
+      { path: "customers", element: wrap(<Customers />) },
+      { path: "customer-recall", element: wrap(<CustomerRecall />) },
+      { path: "marketing", element: wrap(<Marketing />) },
+      { path: "reviews", element: wrap(<Reviews />) },
+      { path: "banquet-leads", element: wrap(<BanquetLeads />) },
+      { path: "settings", element: wrap(<Settings />) },
     ],
   },
 ]);
