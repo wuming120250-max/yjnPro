@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>宴江南 AI 门店经营助手</title>
+  </head>
+  <body>
+    <div id="root">正在加载宴江南 AI 门店经营助手…</div>
+    <script>
+      window.addEventListener("error", function (event) {
+        var el = document.getElementById("root");
+        if (!el || el.children.length) return;
+        el.innerHTML =
+          '<div style="padding:32px;font-family:sans-serif;color:#b5453a">页面加载失败：' +
+          (event.message || "未知错误") +
+          "</div>";
+      });
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
