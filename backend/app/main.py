@@ -9,6 +9,7 @@ from app.api import (
     dashboard,
     marketing,
     menu_analysis,
+    opportunities,
     recall,
     revenue,
     reviews,
@@ -21,6 +22,7 @@ from app.models import (  # noqa: F401
     AiAnalysis,
     AiDailyReport,
     BanquetLead,
+    BusinessOpportunity,
     Customer,
     DailyRevenue,
     MenuItem,
@@ -42,6 +44,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(dashboard.router)
+app.include_router(opportunities.router)
 app.include_router(daily_report.router)
 app.include_router(menu_analysis.router)
 app.include_router(revenue.router)

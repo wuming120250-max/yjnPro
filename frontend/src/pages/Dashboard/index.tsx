@@ -110,6 +110,36 @@ export default function Dashboard() {
         <div className="diag-action">👉 今日最重要：{data.recommendation || "重点推广家庭聚餐套餐"}</div>
       </div>
 
+      <Card
+        title="AI经营机会"
+        extra={<Button type="link" onClick={() => navigate("/opportunities")}>查看全部机会</Button>}
+        style={{ marginTop: 16 }}
+      >
+        {(data.top_opportunities || []).length ? (
+          (data.top_opportunities || []).map((item) => (
+            <div
+              className="diag-item"
+              key={item.id}
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate("/opportunities")}
+            >
+              <Tag color={item.level === "high" ? "red" : item.level === "medium" ? "orange" : "green"}>
+                {item.level_label}
+              </Tag>
+              <strong style={{ marginLeft: 8 }}>{item.title}</strong>
+              <span style={{ color: "#6b7280", marginLeft: 8 }}>优先级 {item.priority}</span>
+            </div>
+          ))
+        ) : (
+          <div>
+            还没有生成今日机会。
+            <Button type="link" onClick={() => navigate("/opportunities")}>
+              去机会中心生成
+            </Button>
+          </div>
+        )}
+      </Card>
+
       <Row gutter={16} style={{ marginTop: 16 }}>
         <Col xs={24} lg={10}>
           <Card title="菜品经营" extra={<Button type="link" onClick={() => navigate("/menu-analysis")}>查看</Button>}>

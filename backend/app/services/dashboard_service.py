@@ -8,6 +8,7 @@ from app.models.customer import Customer
 from app.models.daily_revenue import DailyRevenue
 from app.services.customer_service import compute_customer_level, current_biz_date
 from app.services.daily_report_service import build_scorecard, diagnosis_items
+from app.services.opportunities.opportunity_service import top_opportunities
 from app.services.recall_service import list_recall_customers
 
 
@@ -81,4 +82,5 @@ def get_overview(db: Session) -> dict:
         ],
         "trend": trend,
         "level_distribution": distribution,
+        "top_opportunities": top_opportunities(db, 3),
     }

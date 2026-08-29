@@ -85,6 +85,7 @@ class DashboardOverviewResponse(DashboardOverview):
     insights: list[DashboardInsight]
     trend: list[DashboardTrendPoint]
     level_distribution: dict[str, int]
+    top_opportunities: list[dict] = Field(default_factory=list)
 
 
 class RecallCustomerItem(CustomerListItem):

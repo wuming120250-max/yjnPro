@@ -1,5 +1,5 @@
 import {
-  CommentOutlined,
+  BulbOutlined,
   FileTextOutlined,
   GiftOutlined,
   LogoutOutlined,
@@ -17,6 +17,7 @@ const { Sider, Header, Content } = Layout;
 
 const items = [
   { key: "/dashboard", icon: <ShopOutlined />, label: "AI经营驾驶舱" },
+  { key: "/opportunities", icon: <BulbOutlined />, label: "AI经营机会中心" },
   { key: "/ai-daily-report", icon: <FileTextOutlined />, label: "AI老板日报" },
   {
     key: "ops",

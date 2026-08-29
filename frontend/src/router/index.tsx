@@ -5,6 +5,7 @@ import MainLayout from "../layouts/MainLayout";
 import Login from "../pages/Login";
 
 const Dashboard = lazy(() => import("../pages/Dashboard"));
+const Opportunities = lazy(() => import("../pages/Opportunities"));
 const AIDailyReport = lazy(() => import("../pages/AIDailyReport"));
 const MenuAnalysis = lazy(() => import("../pages/MenuAnalysis"));
 const MenuDiagnosis = lazy(() => import("../pages/MenuDiagnosis"));
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", element: wrap(<Dashboard />) },
+      { path: "opportunities", element: wrap(<Opportunities />) },
       { path: "ai-daily-report", element: wrap(<AIDailyReport />) },
       { path: "menu-analysis", element: wrap(<MenuAnalysis />) },
       { path: "menu-diagnosis", element: wrap(<MenuDiagnosis />) },

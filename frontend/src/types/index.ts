@@ -45,6 +45,7 @@ export interface DashboardOverview {
   insights: DashboardInsight[];
   trend: DashboardTrendPoint[];
   level_distribution: Record<string, number>;
+  top_opportunities: OpportunityItem[];
 }
 
 export interface DiagnosisItem {
@@ -229,4 +230,53 @@ export interface DailyReport {
   recommendation: string;
   diagnosis: DiagnosisItem[];
   demo_fallback: boolean;
+}
+
+export interface OpportunityItem {
+  id: number;
+  opportunity_key: string;
+  title: string;
+  type: string;
+  type_label: string;
+  priority: number;
+  level: string;
+  level_label: string;
+  description: string;
+  data_source: string;
+  data_snapshot: Record<string, unknown>;
+  reason: string;
+  estimated_impact: number;
+  impact_type: string;
+  impact_type_label: string;
+  suggestion: string;
+  action: string;
+  summary: string;
+  link: string;
+  status: string;
+  status_label: string;
+  is_today_focus: boolean;
+  due_date: string | null;
+  completed_at: string | null;
+  action_items: string[];
+  demo_note: string;
+  demo_fallback?: boolean;
+}
+
+export interface OpportunityListResponse {
+  total: number;
+  items: OpportunityItem[];
+  stats: {
+    total: number;
+    high: number;
+    medium: number;
+    low: number;
+    completed: number;
+    pending: number;
+    processing: number;
+  };
+  today_priority: OpportunityItem | null;
+  biz_date: string;
+  demo_mode: boolean;
+  generated?: number;
+  demo_fallback?: boolean;
 }

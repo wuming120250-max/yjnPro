@@ -157,10 +157,25 @@ body,
   font-weight: 600;
 }
 
-.demo-note {
-  color: #9a8b78;
-  font-size: 12px;
-  margin-top: 8px;
+.today-priority {
+  background: #fff;
+  border: 1px solid #eadfce;
+  border-left: 4px solid var(--yjn-accent);
+  border-radius: 10px;
+  padding: 20px 22px;
+}
+
+.today-priority h3 {
+  margin: 10px 0 8px;
+  font-size: 22px;
+}
+
+.opp-card-high {
+  border-color: #f1c5c0;
+}
+
+.opp-card h4 {
+  font-size: 16px;
 }
 
 @media (max-width: 900px) {
